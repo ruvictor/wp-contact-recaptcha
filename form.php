@@ -7,6 +7,15 @@
  * Version: 1
 **/
 
+
+add_action('wp_enqueue_scripts', 'callback_for_style');
+function callback_for_style() {
+    wp_register_style( 'vicode', plugins_url('/style.css', __FILE__), false, '1.0.0', 'all' );
+    wp_enqueue_style( 'vicode' );
+    // wp_enqueue_script( 'namespaceformyscript', 'http://locationofscript.com/myscript.js', array( 'jquery' ) );
+}
+
+
 function vicode_contact_form(){
     if(isset($_POST['submitted'])) {
         if(trim($_POST['contactName']) === '') {

@@ -1,0 +1,5 @@
+#contactForm input[type="text"],
+#contactForm textarea {
+    width: 100%;
+    margin-bottom: 15px;
+}
