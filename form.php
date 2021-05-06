@@ -18,8 +18,8 @@ function callback_for_style() {
 function vicode_contact_form(){
 
     // reCAPTCHA v3
-    define('SITE_KEY', '');
-    define('SECRET_KEY', '');
+    define('SITE_KEY', '6LcpHcgaAAAAAJh6MuP08_7QzSeLKJLS-vX6-Jtw');
+    define('SECRET_KEY', '6LcpHcgaAAAAAHL6e5u_0cIo-jHezTpE4t2aKMcM');
 
 
     if(isset($_POST['submitted'])) {
@@ -64,7 +64,8 @@ function vicode_contact_form(){
         }
     
         if(!isset($hasError)) {
-            $emailTo = get_option('tz_email');
+            $submittedSuccess = 'Thank you for contacting us!<br>';
+            $emailTo = 'info@vicodemedia.com';
             if (!isset($emailTo) || ($emailTo == '') ){
                 $emailTo = 'info@vicodemedia.com';
             }
@@ -73,7 +74,6 @@ function vicode_contact_form(){
             $headers = 'From: '.$name.' <'.$emailTo.'>' . "\r\n" . 'Reply-To: ' . $email;
     
             wp_mail($emailTo, $subject, $body, $headers);
-            $emailSent = true;
         }
     
     }
@@ -83,6 +83,7 @@ function vicode_contact_form(){
     $nameError = isset($nameError) ? $nameError : '';
     $emailError = isset($emailError) ? $emailError : '';
     $commentError = isset($commentError) ? $commentError : '';
+    $submittedSuccess = isset($submittedSuccess) ? $submittedSuccess : '';
     
     $content = '
     <script src="https://www.google.com/recaptcha/api.js?render=' . SITE_KEY . '"></script>
@@ -125,6 +126,7 @@ function vicode_contact_form(){
         });
         });
     </script>
+    '.$submittedSuccess.'
     ';
     return $content;
 }
