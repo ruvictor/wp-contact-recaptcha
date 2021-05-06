@@ -1,5 +1,12 @@
 #contactForm input[type="text"],
 #contactForm textarea {
     width: 100%;
+}
+.formGroup{
     margin-bottom: 15px;
+}
+.formGroup .error{
+    font-style: italic;
+    color: red;
+    font-size: 14px;
 }

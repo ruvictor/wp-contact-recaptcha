@@ -4,7 +4,7 @@
  * Description: This plugin will generate a contact form
  * Plugin URI: https://vicodemedia.com
  * Author: Victor Rusu
- * Version: 1
+ * Version: 1.0.0
 **/
 
 
@@ -12,12 +12,29 @@ add_action('wp_enqueue_scripts', 'callback_for_style');
 function callback_for_style() {
     wp_register_style( 'vicode', plugins_url('/style.css', __FILE__), false, '1.0.0', 'all' );
     wp_enqueue_style( 'vicode' );
-    // wp_enqueue_script( 'namespaceformyscript', 'http://locationofscript.com/myscript.js', array( 'jquery' ) );
 }
 
 
 function vicode_contact_form(){
+
+    // reCAPTCHA v3
+    define('SITE_KEY', '');
+    define('SECRET_KEY', '');
+
+
     if(isset($_POST['submitted'])) {
+
+        $Response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".SECRET_KEY."&response={$_POST['g-recaptcha-response']}");
+        $Return = json_decode($Response);
+        // var_dump($Return);
+
+        if($Return->success == true && $Return->score > 0.5){
+            $hasError = false;
+        }else{
+            $googleError = 'You are a Robot!!';
+            $hasError = true;
+        }
+        
         if(trim($_POST['contactName']) === '') {
             $nameError = 'Please enter your name.';
             $hasError = true;
@@ -49,36 +66,65 @@ function vicode_contact_form(){
         if(!isset($hasError)) {
             $emailTo = get_option('tz_email');
             if (!isset($emailTo) || ($emailTo == '') ){
-                $emailTo = get_option('admin_email');
+                $emailTo = 'info@vicodemedia.com';
             }
-            $subject = '[PHP Snippets] From '.$name;
+            $subject = '[Contact Form] From '.$name;
             $body = "Name: $name \n\nEmail: $email \n\nComments: $comments";
             $headers = 'From: '.$name.' <'.$emailTo.'>' . "\r\n" . 'Reply-To: ' . $email;
     
             wp_mail($emailTo, $subject, $body, $headers);
             $emailSent = true;
         }
-
-        // echo "dfdfdff";
     
     }
+
+    // validating variables
+    $googleError = isset($googleError) ? $googleError : '';
+    $nameError = isset($nameError) ? $nameError : '';
+    $emailError = isset($emailError) ? $emailError : '';
+    $commentError = isset($commentError) ? $commentError : '';
+    
     $content = '
+    <script src="https://www.google.com/recaptcha/api.js?render=' . SITE_KEY . '"></script>
     <form action="' . get_the_permalink() . '" id="contactForm" method="post">
 
-                <label for="contactName">Name:</label>
-                <input type="text" name="contactName" id="contactName" class="required requiredField" />
-                <span class="error"> ' . $nameError . '</span>
+        <div class="formGroup">
+            <label for="contactName">Name:</label>
+            <input type="text" name="contactName" id="contactName">
+            <span class="error"> ' . $nameError . '</span>
+        </div>
 
-                <label for="email">Email</label>
-                <input type="text" name="email" id="email" class="required requiredField email" />
+        <div class="formGroup">
+            <label for="email">Email</label>
+            <input type="text" name="email" id="email">
+            <span class="error"> ' . $emailError . '</span>
+        </div>
 
+        <div class="formGroup">
             <label for="commentsText">Message:</label>
-                <textarea name="comments" id="commentsText" rows="5" cols="20" class="required requiredField"></textarea>
+            <textarea name="comments" id="commentsText" rows="5" cols="20"></textarea>
+            <span class="error"> ' . $commentError . '</span>
+        </div>
 
-            <input type="hidden" name="submitted" id="submitted" value="true" />
-                
+        <input type="hidden" name="submitted" id="submitted" value="true" />
+
+        <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" />
+
         <input type="submit" value="Send Email" />
+        <div class="formGroup">
+            <span class="error"> ' . $googleError . '</span>
+        </div>
     </form>
+
+    <script>
+        grecaptcha.ready(function() {
+        grecaptcha.execute("' . SITE_KEY . '", {action: "homepage"})
+        .then(function(token) {
+            //console.log(token);
+            document.getElementById("g-recaptcha-response").value=token;
+        });
+        });
+    </script>
     ';
     return $content;
 }
