@@ -18,8 +18,8 @@ function callback_for_style() {
 function vicode_contact_form(){
 
     // reCAPTCHA v3
-    define('SITE_KEY', '6LcpHcgaAAAAAJh6MuP08_7QzSeLKJLS-vX6-Jtw');
-    define('SECRET_KEY', '6LcpHcgaAAAAAHL6e5u_0cIo-jHezTpE4t2aKMcM');
+    define('SITE_KEY', '');
+    define('SECRET_KEY', '');
 
 
     if(isset($_POST['submitted'])) {
@@ -31,7 +31,7 @@ function vicode_contact_form(){
         if($Return->success == true && $Return->score > 0.5){
             $hasError = false;
         }else{
-            $googleError = 'You are a Robot!!';
+            $googleError = 'reCAPTCHA Error!';
             $hasError = true;
         }
         
@@ -62,20 +62,18 @@ function vicode_contact_form(){
                 $comments = trim($_POST['comments']);
             }
         }
-    
+
         if(!isset($hasError)) {
-            $submittedSuccess = 'Thank you for contacting us!<br>';
             $emailTo = 'info@vicodemedia.com';
-            if (!isset($emailTo) || ($emailTo == '') ){
-                $emailTo = 'info@vicodemedia.com';
-            }
             $subject = '[Contact Form] From '.$name;
             $body = "Name: $name \n\nEmail: $email \n\nComments: $comments";
             $headers = 'From: '.$name.' <'.$emailTo.'>' . "\r\n" . 'Reply-To: ' . $email;
     
             wp_mail($emailTo, $subject, $body, $headers);
         }
-    
+
+        if(!$hasError)
+            $submittedSuccess = 'Thank you for contacting us!';
     }
 
     // validating variables
@@ -84,8 +82,10 @@ function vicode_contact_form(){
     $emailError = isset($emailError) ? $emailError : '';
     $commentError = isset($commentError) ? $commentError : '';
     $submittedSuccess = isset($submittedSuccess) ? $submittedSuccess : '';
+    // $submittedSuccess = !isset($hasError) && isset($_POST['submitted']) ? 'Thank you for contacting us!<br>' : '';
+    // var_dump($submittedSuccess);
     
-    $content = '
+    $content = $submittedSuccess . '
     <script src="https://www.google.com/recaptcha/api.js?render=' . SITE_KEY . '"></script>
     <form action="' . get_the_permalink() . '" id="contactForm" method="post">
 
@@ -119,14 +119,13 @@ function vicode_contact_form(){
 
     <script>
         grecaptcha.ready(function() {
-        grecaptcha.execute("' . SITE_KEY . '", {action: "homepage"})
-        .then(function(token) {
-            //console.log(token);
-            document.getElementById("g-recaptcha-response").value=token;
-        });
+            grecaptcha.execute("' . SITE_KEY . '", {action: "homepage"})
+            .then(function(token) {
+                //console.log(token);
+                document.getElementById("g-recaptcha-response").value=token;
+            });
         });
     </script>
-    '.$submittedSuccess.'
     ';
     return $content;
 }
